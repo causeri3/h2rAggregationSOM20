@@ -1,33 +1,28 @@
-##########################################################################################################################################################################################################################################
-##################################################################################H2R AGGREAGTION#########################################################################################################################################
-##########################################################################################################################################################################################################################################
+                                                                              ######################
+                                                                              ########README########
+                                                                              ######################
 
+                                                                  #If the survey tool changes, one will have to double-check:
+                                                                     ### New variables without skip-logic in "no_skip_list"
+                                                                     ### New & missing variables in "equal" list
+                                                                     ### Whether NON_CONSENSUS [NC] logic is still correct
 
-#devtools::install_github('mabafaba/mergekobodata')
+########LOAD PACKAGES#####################################################################################################################################################################################################################
+                                                                              
 #remotes::install_github("elliottmess/butter")
-#fix for butteR:
+#!!!#fix for butteR:
 #devtools::install_version("srvyr", version = "0.3.8", repos = "http://cran.us.r-project.org")
-library(tidyverse)
+
 library(dplyr)
 library(butteR)
-library(survey)
-library(lubridate)
 library(sf)
-library(openxlsx)
 library(srvyr)
-library(mergekobodata)
-
 
 ########IMPORTS###########################################################################################################################################################################################################################
-setwd("C:/Users/Vanessa Causemann/Desktop/REACH/RStuff/HtR")
-
-#source("aok_aggregation_functions.R")
-#source("aok_aggregate_by_county_wrapped.R")
+setwd("C:/Users/Vanessa Causemann/Desktop/REACH/RStuff/HtR/Github/h2rAggregationSOM20")
 
 #import data set
 df<-read.csv("h2r_Oct_2020_consolidated_mog_baidoa_clean.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))            #import with blanks being NA's
-#second import for debugging
-df_orig<-read.csv("h2r_Oct_2020_consolidated_mog_baidoa_clean.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c(""," ","NA"))
 
 #Spatial data folder_path
 admin_gdb<- "inputs/gis_data/boundaries"
@@ -106,7 +101,7 @@ hex_400km <-st_transform(hex_400km,crs=4326)
 som_settlements <- st_read(admin_gdb,"Somalia_Setlements_Update_2702" )
 som_settlements <-st_transform(som_settlements,crs=4326)
 
-#???#Create a new column that combines what was mapped as other and has nearest settlement given, keep only data set with both columns and records have values
+#Create a new column that combines what was mapped as other and has nearest settlement given, keep only data set with both columns and records have values
 df <- df %>% filter(!is.na(info_settlement)) %>%  mutate(finalsettlment= ifelse(info_settlement=="other",info_set_oth_near,info_settlement))
 
 #Join with the settlement data as some districts are blank if chosen near settlement
@@ -153,49 +148,36 @@ select_multiple_df[select_multiple_df==0]<- "no"
 select_multiple_df[select_multiple_df==1]<- "yes"
 
 #list with left over variables (add on if check_these in the main script gives you variables which should not be missing)
-equal <- c("consent", "base","ppl_no_land_tenure", "depart_return_safe", "freedommov_day","freedommov_night",
-           "info_settlement",
-           "idp_proportion_settlem","idp_arrived_from", "idp_arrived_from_reg", "idp_arrived_from_district",
-           "hc_push_main", "hc_push_second", "access_market", "market_region",
-           "market_district", "market_settlement",
-           "distance_to_market",
-           "food_situation", "food_source", "health_issues",
-           "distance_clinic",
-           "region_clinic", "district_clinic", "settlement_clinic",
-           "idp_host_relationships",
-           "ppl_no_land_tenure","access_healthservices",
-           "land_tenure_form", "depart_return_safe", "freedommov_day", "freedommov_night",
-           "shelter_type", "dam_shelters_reason", 
-           "shelters_not_rebuilt", "shelt_not_rebuilt_why", 
-           "mainsource_water", "gettingwater_time", "people_using_latrines",
-           "waste_disposal", "time_to_school", "education_bar_girls", "education_bar_boys",
-           "info_personsource", "road_connection_y_n", "food_price_changed", "nfi_price_changed", "soap_price_changed",
-           "how_often_provide_health", "idp_new_arrivals","skip_meals",
-           "unaccompanied_child_y_n", "cases_eviction", "ppl_no_shelter", "surfacewater_drinking",
-           "water_sufficient_lastmonth","water_seasonal", "stagnant_water_near", "info_ngo_y_n", "ngo_support_y_n", "plane_connection_y_n",
-           "particip_again", "handwashing_access",  "covid_information", "health_workers_available", "dam_shelter", "education_bar","missing_children",
-           "unaccompanied_child_y_n", "covid_measures", "uac_where_live","women_unsafeplaces","women_services", "women_protincid", "caretaker_who",
-           "primary_reason_moved",
-           "secondary_reason_moved",
-           "pwd_left_behind",
-           "visit_lastmonth"
+equal <- c("consent", "base","ppl_no_land_tenure", "depart_return_safe", "freedommov_day","freedommov_night","info_settlement","idp_proportion_settlem","idp_arrived_from", 
+           "idp_arrived_from_reg", "idp_arrived_from_district","hc_push_main", "hc_push_second", "access_market", "market_region", "market_district", "market_settlement",
+           "distance_to_market", "food_situation", "food_source", "health_issues", "distance_clinic","region_clinic", "district_clinic", "settlement_clinic",
+           "idp_host_relationships","ppl_no_land_tenure","access_healthservices", "land_tenure_form", "depart_return_safe", "freedommov_day", "freedommov_night",
+           "shelter_type", "dam_shelters_reason", "shelters_not_rebuilt", "shelt_not_rebuilt_why", "mainsource_water", "gettingwater_time", "people_using_latrines",
+           "waste_disposal", "time_to_school", "education_bar_girls", "education_bar_boys","info_personsource", "road_connection_y_n", "food_price_changed", "nfi_price_changed", 
+           "soap_price_changed","how_often_provide_health", "idp_new_arrivals","skip_meals","unaccompanied_child_y_n", "cases_eviction", "ppl_no_shelter", "surfacewater_drinking",
+           "water_sufficient_lastmonth","water_seasonal", "stagnant_water_near", "info_ngo_y_n", "ngo_support_y_n", "plane_connection_y_n","particip_again", "handwashing_access",  
+           "covid_information", "health_workers_available", "dam_shelter", "education_bar","missing_children","unaccompanied_child_y_n", "covid_measures", "uac_where_live",
+           "women_unsafeplaces","women_services", "women_protincid", "caretaker_who","primary_reason_moved","secondary_reason_moved","pwd_left_behind","visit_lastmonth"
            
 )
 
+#get all other variables to exclude them
+select_other <- grep("_oth", names(df), value = TRUE)
+
+#fix wrongly selected ones
+select_other_wrong <- grep("[.]", select_other, value = TRUE)
+select_other<-select_other[select_other %in% select_other_wrong ==FALSE]
+
 #variables to ignore in check_these list
-not_needed_columns <- c( "start", "end","today", "deviceid","available_health_services","barriers_health", "barriers_usetoilets",
-                         "conflict_causes","conflict_mediators","coping_food_strat","education_available",
-                         "idp_arrived_reason", "idp_pull_factors", "incidents_wh_leaving","info_barriers", "info_mainsource", "lack_food_reasons",
-                         "left_behind_who", "livelihood_activ", "main_radios", "market_goods", "ngo_support_type","noaccess_health","nomarket_why","nomarket_why_short",
-                         "protection_inc_location", "protection_incidents","enum_code_baidoa","contact_again", "end_note", "X__version__", "X_id", "X_uuid",
-                         "X_submission_time", "X_index", "X.1", "idp_site", "info_reg", "district_info", "gender_ki", 
-                         "MERGED_FROM_FILE", "X", "enum_code_mogadishu", "idpsite_district", 
-                         "h2r_notice", "hc_push_second_other", "info_personsource_other", 
-                         "ngo_support_type.none", "enum_code_hargeisa", "KI_settlem_type", 
-                         "idpsite_name", "info_settlement_001", "X_version_", "X_version__001", "noaccess_health_other", "how_often_provide_health", "protection_incidents_other", 
-                         "education_bar_girls_other", "ngo_support_type_other", 
-                         "sources_covid_informaiton", "other_covid_info_sources"
+not_needed_columns <- c( "start", "end","today", "deviceid","available_health_services","barriers_health", "barriers_usetoilets","conflict_causes","conflict_mediators",
+                         "coping_food_strat","education_available", "idp_arrived_reason", "idp_pull_factors", "incidents_wh_leaving","info_barriers", "info_mainsource", 
+                         "lack_food_reasons","left_behind_who", "livelihood_activ", "main_radios", "market_goods", "ngo_support_type","noaccess_health","nomarket_why",
+                         "protection_inc_location", "protection_incidents","contact_again", "X__version__", "X_id", "X_uuid","X_submission_time", "X_index", "idp_site", 
+                         "info_reg", "district_info", "gender_ki", "hc_push_second_other", "info_personsource_other","sources_covid_informaiton", "other_covid_info_sources",
+                         "settlement_info_001","X_validation_status", "enum_code",
+                         select_other
 )
+
 
 #########AGGREGATE BY MAJORITY OR DISPLAY TIE ("NC")######################################################################################################################################################################################
 
@@ -216,8 +198,8 @@ ki_coverage <- df %>%
   group_by(calc.region,calc.district,finalsettlment) %>%
   summarise(ki_num = length(particip_again))
 
-analysis_df_list<-list( settlement_equal, settlement_mscols)
-settlement_data <-purrr::reduce(analysis_df_list, left_join)
+analysis_df_list<-list(settlement_equal, settlement_mscols)
+settlement_data <-purrr::reduce(analysis_df_list, left_join)#, by= c("calc.district","calc.region", "finalsettlment"))
 
 #Combining settlement and county name for when we join to ArcGIS, also adding in a column for KI coverage
 settlement_data <- settlement_data %>%
@@ -227,16 +209,7 @@ settlement_data <- settlement_data %>%
 #Rearranging of columns in our data set to be in the same order as in the tool
 settlement_data <- settlement_data %>% select(order(match(names(settlement_data), names(df))))
 
-#check for missing columns
-missing_columns<-colnames(df)[colnames(df)%in% colnames(settlement_data)==FALSE]
-check_these<-missing_columns[missing_columns %in% not_needed_columns ==FALSE]
-
-if(length(check_these>0)){
-  print("WARNING you missed these:")
-  check_these %>% dput()
-}
-
-##???####NON_CONSENSUS [NC] & skip logic, not sure if all in line with survey at the moment###############################################################################################################################################
+#########NON_CONSENSUS [NC] & skip logic###############################################################################################################################################
 
 settlement_data$nomarket_why.market_far[settlement_data$access_market == "NC"] <- "NC"
 settlement_data$nomarket_why.road_closed[settlement_data$access_market == "NC"] <- "NC"
@@ -299,10 +272,21 @@ settlement_data$shelt_not_rebuilt_why[settlement_data$dam_shelters_reason == "NC
 settlement_data$surfacewater_drinking[settlement_data$mainsource_water == "NC"] <- "NC"
 settlement_data$time_to_school[settlement_data$education_available.none == "NC" | settlement_data$education_available.dontknow == "NC"] <- "NC"
 
+
 #########FURTHER GEOSPATIAL PREPARATION#################################################################################################################################################################################################
 settlement_data <- settlement_data %>% 
-  select(base:consent,calc.region, calc.district,finalsettlment,D.ki_coverage,info_settlement:dam_shelter) %>% 
+  select(base:consent,calc.region, calc.district,finalsettlment,D.ki_coverage,info_settlement:names(settlement_data)[length(settlement_data)-4])%>% 
   filter(D.ki_coverage > 1)
+
+
+#check for missing columns
+missing_columns<-colnames(df)[colnames(df)%in% colnames(settlement_data)==FALSE]
+check_these<-missing_columns[missing_columns %in% not_needed_columns ==FALSE]
+
+if(length(check_these>0)){
+  print("WARNING you missed these:")
+  check_these %>% dput()
+}
 
 write.csv(
   settlement_data,
@@ -323,9 +307,9 @@ names(som_settlements_data)[names(som_settlements_data) == "GRID_ID"] <- "hex_40
 #Settlement data with hexagons information
 
 som_settlements_data <- som_settlements_data %>%
-  select(OBJECTID_1,name,ADM1_NAME,ADM2_NAME,hex_4000km,base,consent,finalsettlment:dam_shelter,geometry)
+  select(OBJECTID_1,name,ADM1_NAME,ADM2_NAME,hex_4000km,base,consent,finalsettlment:names(settlement_data)[length(settlement_data)-2],geometry)
 
-setlement_level <- som_settlements_data %>%  select(name:dam_shelter) %>% filter(!is.na(D.ki_coverage))
+setlement_level <- som_settlements_data %>%   filter(!is.na(D.ki_coverage))
 
 
 #########REFORMATTING FOR butteR::mean_proportion_table##################################################################################################################################################################################
@@ -345,14 +329,14 @@ setlement_level$idp_arrived_from_district <- forcats::fct_expand(setlement_level
 setlement_level$idp_arrived_from_district <- forcats::fct_expand(setlement_level$idp_arrived_from_district,c("SL","NA"))
 setlement_level$idp_arrived_from_district <- forcats::fct_expand(setlement_level$idp_arrived_from_district,c("SL","NA"))
 setlement_level$ngo_support_y_n <- forcats::fct_expand(setlement_level$ngo_support_y_n,c("no","yes"))
-
+setlement_level$women_services <- forcats::fct_expand(setlement_level$women_services,c("none","NA"))
 
 #########GEOSPATIAL AGGREGATION##########################################################################################################################################################################################################
 
 dfsvy_h2r_district <-srvyr::as_survey(setlement_level)
 
 h2r_columns <- setlement_level %>% 
-  select(visit_lastmonth:dam_shelter, - contains(c("other","dontknow","noresponse"))) %>% 
+  select(visit_lastmonth:names(setlement_level)[length(setlement_level)-1], - contains(c(".other",".dontknow",".noresponse"))) %>% 
   colnames() %>% 
   dput()
 
@@ -419,17 +403,17 @@ names(grid_400km)[names(grid_400km) == "sett_num"] <- "sett_num"
 #Better to export these directly as shapefile but the data can be used in other platforms and a simple join with existing shapefiles will do
 
 #Settlement level
-setlement_level <- setlement_level %>% select(everything(), - contains(c("other","dontknow","noresponse")))
+setlement_level <- setlement_level %>% select(everything(), - contains(c(".other",".dontknow",".noresponse")))
 names(setlement_level) <- gsub("\\.", "_", names(setlement_level))
 
 
 #grid_level
-grid_level <- grid_400km %>% select(everything(), - contains(c("other","dontknow","noresponse")))
+grid_level <- grid_400km %>% select(everything(), - contains(c(".other",".dontknow",".noresponse")))
 names(grid_level) <- gsub("\\.", "_", names(grid_level))
 
 
 #district_level
-district_level <- district_level %>% select(everything(), - contains(c("other","dontknow","noresponse")))
+district_level <- district_level %>% select(everything(), - contains(c(".other",".dontknow",".noresponse")))
 names(district_level) <- gsub("\\.", "_", names(district_level))
 
 #########EXPORT##########################################################################################################################################################################################################################
@@ -438,15 +422,15 @@ names(district_level) <- gsub("\\.", "_", names(district_level))
 
 list_of_datasets <- list("settlement_aggregation" = setlement_level, "Aggregation by region" = region_h2r, "Aggregation by district" = district_level, "Aggregation by hex 400km"= grid_level)
 
-write.csv(grid_level,"outputs/oct Aggregation by hex 400km.csv" )
-write.csv(district_level,"outputs/oct Aggregation by district.csv" )
-write.csv(setlement_level,"outputs/oct settlement_aggregation.csv" )
+write.csv(grid_level,"outputs/oct Aggregation by hex 400km.csv" , row.names=FALSE)
+write.csv(district_level,"outputs/oct Aggregation by district.csv" , row.names=FALSE)
+write.csv(setlement_level,"outputs/oct settlement_aggregation.csv" , row.names=FALSE)
 
 #Export FS columns
 
 grid_level_fs <- grid_level %>% 
-  select(c( "hex_4000km" ,"ki_num","assessed_num", "food_price_changed_prices_increased", #"education_bar_cost_stud", #can't explain why that dropped out
+  select(c( "hex_4000km" ,"ki_num","assessed_num", "food_price_changed_prices_increased", "education_bar_cost_stud",
             "access_healthservices_no", "health_workers_available_yes", "protection_incidents_none_no", "dam_shelter_yes", 
             "handwashing_access_no", "sources_covid_informaiton_mobile_network_operator_yes"))                                      
-write.csv(grid_level_fs, "outputs/fs_oct_Aggreg_by_hex_400km.csv")
+write.csv(grid_level_fs, "outputs/fs_oct_Aggreg_by_hex_400km.csv", row.names=FALSE)
 
