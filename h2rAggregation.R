@@ -158,7 +158,6 @@ equal <- c("consent", "base","ppl_no_land_tenure", "depart_return_safe", "freedo
            "water_sufficient_lastmonth","water_seasonal", "stagnant_water_near", "info_ngo_y_n", "ngo_support_y_n", "plane_connection_y_n","particip_again", "handwashing_access",  
            "covid_information", "health_workers_available", "dam_shelter", "education_bar","missing_children","unaccompanied_child_y_n", "covid_measures", "uac_where_live",
            "women_unsafeplaces","women_services", "women_protincid", "caretaker_who","primary_reason_moved","secondary_reason_moved","pwd_left_behind","visit_lastmonth"
-           
 )
 
 #get all other variables to exclude them
@@ -288,9 +287,13 @@ if(length(check_these>0)){
   check_these %>% dput()
 }
 
+#date to label export
+today <- Sys.Date()
+today<-format(today, format="_%Y_%b_%d")
+
 write.csv(
   settlement_data,
-  file = "outputs/som_H2r__clean_data_20200901.csv",
+  file = paste0("outputs/som_H2r__clean_data_20200901",today,".csv"),
   na = "",
   row.names = FALSE)
 
@@ -417,14 +420,17 @@ district_level <- district_level %>% select(everything(), - contains(c(".other",
 names(district_level) <- gsub("\\.", "_", names(district_level))
 
 #########EXPORT##########################################################################################################################################################################################################################
+#date to label export
+today <- Sys.Date()
+today<-format(today, format="_%Y_%b_%d")
 
 #Export data sets on different area levels
 
 list_of_datasets <- list("settlement_aggregation" = setlement_level, "Aggregation by region" = region_h2r, "Aggregation by district" = district_level, "Aggregation by hex 400km"= grid_level)
 
-write.csv(grid_level,"outputs/oct Aggregation by hex 400km.csv" , row.names=FALSE)
-write.csv(district_level,"outputs/oct Aggregation by district.csv" , row.names=FALSE)
-write.csv(setlement_level,"outputs/oct settlement_aggregation.csv" , row.names=FALSE)
+write.csv(grid_level, paste0("outputs/Aggregation_hex_400km",today,".csv"), row.names=FALSE)
+write.csv(district_level,paste0("outputs/Aggregation_district",today,".csv"), row.names=FALSE)
+write.csv(setlement_level,paste0("outputs/Aggregation_settlement",today,".csv"), row.names=FALSE)
 
 #Export FS columns
 
@@ -432,5 +438,5 @@ grid_level_fs <- grid_level %>%
   select(c( "hex_4000km" ,"ki_num","assessed_num", "food_price_changed_prices_increased", "education_bar_cost_stud",
             "access_healthservices_no", "health_workers_available_yes", "protection_incidents_none_no", "dam_shelter_yes", 
             "handwashing_access_no", "sources_covid_informaiton_mobile_network_operator_yes"))                                      
-write.csv(grid_level_fs, "outputs/fs_oct_Aggreg_by_hex_400km.csv", row.names=FALSE)
+write.csv(grid_level_fs,paste0("outputs/fs_Aggreg_by_hex_400km",today,".csv"), row.names=FALSE)
 
