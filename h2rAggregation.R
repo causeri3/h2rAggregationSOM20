@@ -110,30 +110,27 @@ item_geo <- itemset %>%  select(finalsettlment,calc.district,calc.region)
 item_geo <- distinct(item_geo,finalsettlment, .keep_all= TRUE)
 df <- left_join(df,item_geo, by = "finalsettlment")
 
-#########AGGERAGTE FUNCTION###############################################################################################################################################################################################################
+#########AGGREGATE FUNCTION###############################################################################################################################################################################################################
 
-#Calculate mode, while outputting NC (No consensus) if we don't have a clear winner.
-
-aok_mode <- function(x) {
-  ux <- unique(x[!is.na(x)])
-  # This checks to see if we have more than one mode (a tie), return blank if so.
-  if (length(which(tabulate(match(x, ux)) == max(tabulate(match(x, ux))))) > 1) {
-    if (class(x) == "logical") {
-      return(as.logical("")) # Blanks are coerced to values in logical vectors, so we specifically identify columns with TRUE/FALSE (KoBo's select multiples) and output a "logical" blank.
-    }
-    else {
-      return("NC")
-    }
-  }
-  
-  else {
-    ux[which.max(tabulate(match(x, ux)))] ## This occurs if no tie, so we return the value which has max value! Wambam.
-  }
-  
-}
+#Calculate mode, while outputting NC (No consensus) if we don't have a clear winner. While excluding and keeping distinction between SL (skip-logic) and NA
 
 AoK <- function(x) {
-  aok_mode(x)
+  ux <- unique(x[x!=is.na(x) & x!="SL"])                                                          #Exclude SL and NA
+  if (length(which(tabulate(match(x, ux)) == max(tabulate(match(x, ux))))) > 1) {                 #if more than one mode -> NC
+      return("NC")
+  }
+  else {                  
+      if (length(ux)!=0){                                                                         #otherwise and if not only NA or SL -> return the mode
+        ux[which.max(tabulate(match(x, ux)))]                                                     
+      }
+      else {if ("SL" %in%  x){                                                                    #otherwise if containing SL -> SL , if not -> NA
+        return("SL")
+        }
+        else{
+         return(NA)
+          }
+    }
+  }
 }
 
 #########SORT VARIABLES INTO MULTIPLE DUMMIES AND THE ONES THAT AREN'T ("equal") AND NOT NEEDED ONES######################################################################################################################################
