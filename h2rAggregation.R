@@ -4,7 +4,12 @@
 
                                                                   #If the survey tool changes, one will have to double-check:
                                                                      ### New variables without skip-logic in "no_skip_list"
+<<<<<<< HEAD
                                                                      ### New & missing variables in "select_single" list
+=======
+                                                                     ### New & missing variables in "equal" list
+                                                                     ### Whether NON_CONSENSUS [NC] logic is still correct
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 
 ########LOAD PACKAGES#####################################################################################################################################################################################################################
                                                                               
@@ -18,7 +23,11 @@ library(sf)
 library(srvyr)
 
 ########IMPORTS###########################################################################################################################################################################################################################
+<<<<<<< HEAD
 setwd("C:/Users/Vanessa Causemann/Desktop/REACH/RStuff/Github/h2rAggregationSOM20")
+=======
+setwd("C:/Users/Vanessa Causemann/Desktop/REACH/RStuff/HtR/Github/h2rAggregationSOM20")
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 
 #import data set
 df<-read.csv("h2r_Oct_2020_consolidated_mog_baidoa_clean.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))            #import with blanks being NA's
@@ -56,7 +65,11 @@ no_skip_list<-c('base',
 #get index for no skip logic variables
 index_no_skip<-which(names(df)%in%no_skip_list)   
 
+<<<<<<< HEAD
 #make all NA's to "SL", except variables without skiplogic
+=======
+#make all NA's to "SL", except varaibles without skiplogic
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 df[-index_no_skip][is.na(df[-index_no_skip])] <- "SL"
 
 ########RECODE VALUES IN DATA SET#########################################################################################################################################################################################################
@@ -101,6 +114,7 @@ som_settlements <- st_read(admin_gdb,"Somalia_Setlements_Update_2702" )
 som_settlements <-st_transform(som_settlements,crs=4326)
 
 #Create a new column that combines what was mapped as other and has nearest settlement given, keep only data set with both columns and records have values
+<<<<<<< HEAD
 df <- df %>% filter(!is.na(info_settlement)) %>%  mutate(finalsettlement= ifelse(info_settlement=="other",info_set_oth_near,info_settlement))
 
 #Join with the settlement data as some districts are blank if chosen near settlement
@@ -108,6 +122,15 @@ names(itemset)[names(itemset) == "calc.name"] <- "finalsettlement"
 item_geo <- itemset %>%  select(finalsettlement,calc.district,calc.region)
 item_geo <- distinct(item_geo,finalsettlement, .keep_all= TRUE)
 df <- left_join(df,item_geo, by = "finalsettlement")
+=======
+df <- df %>% filter(!is.na(info_settlement)) %>%  mutate(finalsettlment= ifelse(info_settlement=="other",info_set_oth_near,info_settlement))
+
+#Join with the settlement data as some districts are blank if chosen near settlement
+names(itemset)[names(itemset) == "calc.name"] <- "finalsettlment"
+item_geo <- itemset %>%  select(finalsettlment,calc.district,calc.region)
+item_geo <- distinct(item_geo,finalsettlment, .keep_all= TRUE)
+df <- left_join(df,item_geo, by = "finalsettlment")
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 
 #########AGGREGATE FUNCTION###############################################################################################################################################################################################################
 
@@ -132,19 +155,34 @@ AoK <- function(x) {
   }
 }
 
+<<<<<<< HEAD
 #########SORT VARIABLES INTO DUMMIES FROM MULTIPLE REPONSES AND SINGLE RESPONSES AND NOT NEEDED ONES######################################################################################################################################
 
 essential_col <- c("calc.region","calc.district","finalsettlement")
+=======
+#########SORT VARIABLES INTO MULTIPLE DUMMIES AND THE ONES THAT AREN'T ("equal") AND NOT NEEDED ONES######################################################################################################################################
+
+essential_col <- c("calc.region","calc.district","finalsettlment")
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 
 #select multiple variables columns and change the 0 to "no" and 1 to "yes" to be used in the non-consensus stage later
 select_multiple <- grep("[.]", names(df), value = TRUE)
 select_multiple<-select_multiple[select_multiple!="calc.region"& select_multiple!="calc.district"]
+<<<<<<< HEAD
 select_multiple_df<- select(df,calc.region,calc.district,finalsettlement, contains(select_multiple))
 select_multiple_df[select_multiple_df==0]<- "no"
 select_multiple_df[select_multiple_df==1]<- "yes"
 
 #list with single choice variables (add on here, if check_these in the main script gives you variables which should not be missing)
 select_single <- c("consent", "base","ppl_no_land_tenure", "depart_return_safe", "freedommov_day","freedommov_night","info_settlement","idp_proportion_settlem","idp_arrived_from", 
+=======
+select_multiple_df<- select(df,calc.region,calc.district,finalsettlment, contains(select_multiple))
+select_multiple_df[select_multiple_df==0]<- "no"
+select_multiple_df[select_multiple_df==1]<- "yes"
+
+#list with left over variables (add on if check_these in the main script gives you variables which should not be missing)
+equal <- c("consent", "base","ppl_no_land_tenure", "depart_return_safe", "freedommov_day","freedommov_night","info_settlement","idp_proportion_settlem","idp_arrived_from", 
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
            "idp_arrived_from_reg", "idp_arrived_from_district","hc_push_main", "hc_push_second", "access_market", "market_region", "market_district", "market_settlement",
            "distance_to_market", "food_situation", "food_source", "health_issues", "distance_clinic","region_clinic", "district_clinic", "settlement_clinic",
            "idp_host_relationships","ppl_no_land_tenure","access_healthservices", "land_tenure_form", "depart_return_safe", "freedommov_day", "freedommov_night",
@@ -174,6 +212,7 @@ not_needed_columns <- c( "start", "end","today", "deviceid","available_health_se
 )
 
 
+<<<<<<< HEAD
 #########AGGREGATE BY MODE OR DISPLAY TIE ("NC")######################################################################################################################################################################################
 
 settlement_single_choice <- df %>%
@@ -184,11 +223,24 @@ settlement_single_choice <- df %>%
 settlement_multiple_choice <- select_multiple_df %>%
   select(essential_col, all_of(select_multiple)) %>%
   group_by_(.dots = c( "calc.region","calc.district","finalsettlement")) %>%
+=======
+#########AGGREGATE BY MAJORITY OR DISPLAY TIE ("NC")######################################################################################################################################################################################
+
+settlement_equal <- df %>%
+  select(essential_col, equal) %>%
+  group_by_(.dots = c( "calc.region","calc.district","finalsettlment")) %>%
+  summarise_all(funs(AoK))
+
+settlement_mscols <- select_multiple_df %>%
+  select(essential_col, all_of(select_multiple)) %>%
+  group_by_(.dots = c( "calc.region","calc.district","finalsettlment")) %>%
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
   summarise_all(funs(AoK))
 
 #########JOIN GEOSPATIAL AND SURVEY DATA#####################################################################################################################################################################################################
 
 ki_coverage <- df %>%
+<<<<<<< HEAD
   select(calc.region,calc.district,finalsettlement, particip_again) %>%
   group_by(calc.region,calc.district,finalsettlement) %>%
   summarise(ki_num = length(particip_again))
@@ -198,10 +250,21 @@ analysis_df_list<-list(settlement_single_choice, settlement_multiple_choice)
 settlement_data <-purrr::reduce(analysis_df_list, left_join)#, by= c("calc.district","calc.region", "finalsettlement"))
 
 #Combining settlement and county name for ArcGIS, also adding in a column for KI coverage
+=======
+  select(calc.region,calc.district,finalsettlment, particip_again) %>%
+  group_by(calc.region,calc.district,finalsettlment) %>%
+  summarise(ki_num = length(particip_again))
+
+analysis_df_list<-list(settlement_equal, settlement_mscols)
+settlement_data <-purrr::reduce(analysis_df_list, left_join)#, by= c("calc.district","calc.region", "finalsettlment"))
+
+#Combining settlement and county name for when we join to ArcGIS, also adding in a column for KI coverage
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 settlement_data <- settlement_data %>%
   ungroup() %>%
   mutate(D.ki_coverage = as.numeric(ki_coverage$ki_num))
 
+<<<<<<< HEAD
 #Rearranging of columns in our new data set to be in the same order as in the original one
 settlement_data <- settlement_data %>% select(order(match(names(settlement_data), names(df))))
 
@@ -211,6 +274,81 @@ settlement_data <- settlement_data %>%
   select(base:consent,calc.region, calc.district,finalsettlement,D.ki_coverage,info_settlement:names(settlement_data)[length(settlement_data)-4])%>% 
   filter(D.ki_coverage > 1)
 
+=======
+#Rearranging of columns in our data set to be in the same order as in the tool
+settlement_data <- settlement_data %>% select(order(match(names(settlement_data), names(df))))
+
+#########NON_CONSENSUS [NC] & skip logic###############################################################################################################################################
+
+settlement_data$nomarket_why.market_far[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$nomarket_why.road_closed[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$nomarket_why.concern_transmiting[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$nomarket_why.other[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_region[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_district[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_settlement[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$distance_to_market[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.clothes_sewing[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.tools_seeds[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.livestock[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.food[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.jerry_cans[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.construction_materials[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.mosquito_nets[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.womens_materials[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.fuel_cooking[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.dontknow[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.soap[settlement_data$access_market == "NC"] <- "NC"
+settlement_data$market_goods.shoes[settlement_data$access_market  == "NC"] <- "NC"
+settlement_data$available_health_services.none[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$available_health_services.mobile_clinic[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$available_health_services.hospital[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$available_health_services.first_aid[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$available_health_services.clinic[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$available_health_services.other[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$available_health_services.midwife[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$available_health_services.dontknow[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$available_health_services.healer[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$available_health_services.individual_pract[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$available_health_services.drugstore[settlement_data$access_healthservices == "NC"] <- "NC"
+settlement_data$distance_clinic[settlement_data$available_health_services.clinic == "NC"] <- "NC"
+settlement_data$protection_inc_location.human_aid_distr[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.school[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.shelters[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.bathing_pl[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.checkpoint[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.dontknow[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.clinic[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.on_the_road[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.latrines[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.near_water[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.in_field[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.other[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$protection_inc_location.market[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.clan_lead[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.gatekeeper[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.none[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.loc_authorities[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.rel_leader[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.health_staff[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.ngo_staff[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.other[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.commun_leader_elder[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.dontknow[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$conflict_mediators.noresponse[settlement_data$protection_incidents.dontknow == "NC" | settlement_data$protection_incidents.none == "NC" | settlement_data$protection_incidents.noresponse == "NC" ] <- "NC"
+settlement_data$shelters_not_rebuilt[settlement_data$dam_shelters_reason == "NC" ] <- "NC"
+settlement_data$shelt_not_rebuilt_why[settlement_data$dam_shelters_reason == "NC"] <- "NC"
+settlement_data$surfacewater_drinking[settlement_data$mainsource_water == "NC"] <- "NC"
+settlement_data$time_to_school[settlement_data$education_available.none == "NC" | settlement_data$education_available.dontknow == "NC"] <- "NC"
+
+
+#########FURTHER GEOSPATIAL PREPARATION#################################################################################################################################################################################################
+settlement_data <- settlement_data %>% 
+  select(base:consent,calc.region, calc.district,finalsettlment,D.ki_coverage,info_settlement:names(settlement_data)[length(settlement_data)-4])%>% 
+  filter(D.ki_coverage > 1)
+
+
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 #check for missing columns
 missing_columns<-colnames(df)[colnames(df)%in% colnames(settlement_data)==FALSE]
 check_these<-missing_columns[missing_columns %in% not_needed_columns ==FALSE]
@@ -230,23 +368,40 @@ write.csv(
   na = "",
   row.names = FALSE)
 
+<<<<<<< HEAD
 #Join data to settlement shapefile
 settlement_data$P_CODE <- settlement_data$finalsettlement
+=======
+#Spatial join----
+
+#Join data to settlement shapefile
+
+settlement_data$P_CODE <- settlement_data$finalsettlment
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 settlement_data$month <- "20200901"
 som_settlements_data <- inner_join(som_settlements,settlement_data )
 som_settlements_data <-st_join( som_settlements_data, hex_400km)
 names(som_settlements_data)[names(som_settlements_data) == "GRID_ID"] <- "hex_4000km"
 
 #Settlement data with hexagons information
+<<<<<<< HEAD
 som_settlements_data <- som_settlements_data %>%
   select(OBJECTID_1,name,ADM1_NAME,ADM2_NAME,hex_4000km,base,consent,finalsettlement:names(settlement_data)[length(settlement_data)-2],geometry)
 
 settlement_level <- som_settlements_data %>%   filter(!is.na(D.ki_coverage))
+=======
+
+som_settlements_data <- som_settlements_data %>%
+  select(OBJECTID_1,name,ADM1_NAME,ADM2_NAME,hex_4000km,base,consent,finalsettlment:names(settlement_data)[length(settlement_data)-2],geometry)
+
+setlement_level <- som_settlements_data %>%   filter(!is.na(D.ki_coverage))
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 
 
 #########REFORMATTING FOR butteR::mean_proportion_table##################################################################################################################################################################################
 
 #reformat variables with only one level to two in order to pass through butteR::mean_proportion_table (below)
+<<<<<<< HEAD
 settlement_level<-as.data.frame(settlement_level)
 
 loop_index<-which(names(settlement_level)%in%select_multiple)
@@ -273,6 +428,34 @@ h2r_columns <- settlement_level %>%
   dput()
 
 #If butteR::mean_prop_working or butteR::mean_proportion_table gives out a warning with "applied only to factors with 2 or more levels" -> add on above lines with forcats::fct_expand
+=======
+setlement_level<-as.data.frame(setlement_level)
+
+loop_index<-which(names(setlement_level)%in%select_multiple)
+
+for (i in loop_index){
+  setlement_level[,i] <- forcats::fct_expand(setlement_level[,i],c("yes","no"))
+}
+
+#add variables at which butteR::mean_proportion_table breaks manually
+setlement_level$idp_arrived_from_reg <- forcats::fct_expand(setlement_level$idp_arrived_from_reg,c("SL","NA"))
+setlement_level$idp_arrived_from_district <- forcats::fct_expand(setlement_level$idp_arrived_from_district,c("SL","NA"))
+setlement_level$idp_arrived_from_district <- forcats::fct_expand(setlement_level$idp_arrived_from_district,c("SL","NA"))
+setlement_level$idp_arrived_from_district <- forcats::fct_expand(setlement_level$idp_arrived_from_district,c("SL","NA"))
+setlement_level$ngo_support_y_n <- forcats::fct_expand(setlement_level$ngo_support_y_n,c("no","yes"))
+setlement_level$women_services <- forcats::fct_expand(setlement_level$women_services,c("none","NA"))
+
+#########GEOSPATIAL AGGREGATION##########################################################################################################################################################################################################
+
+dfsvy_h2r_district <-srvyr::as_survey(setlement_level)
+
+h2r_columns <- setlement_level %>% 
+  select(visit_lastmonth:names(setlement_level)[length(setlement_level)-1], - contains(c(".other",".dontknow",".noresponse"))) %>% 
+  colnames() %>% 
+  dput()
+
+#If butteR::mean_prop_working or butteR::mean_proportion_table gives out a warning with "applied only to factors with 2 or more levels" add on above lines with forcats::fct_expand
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 #Region level aggregation-----------
 region_h2r <-butteR::mean_proportion_table(design = dfsvy_h2r_district,                    
                                            list_of_variables = h2r_columns,
@@ -291,7 +474,11 @@ district_h2r <-butteR::mean_proportion_table(design = dfsvy_h2r_district,
                                              na_replace = FALSE)
 
 
+<<<<<<< HEAD
 District_summary <- settlement_level %>%  select(ADM2_NAME,ADM1_NAME,D.ki_coverage) %>%
+=======
+District_summary <- setlement_level %>%  select(ADM2_NAME,ADM1_NAME,D.ki_coverage) %>%
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
   group_by(ADM2_NAME) %>%
   summarise(assessed_num = n(), ki_num=sum(D.ki_coverage) )
 
@@ -303,10 +490,19 @@ som_settlements_summary <- som_settlements %>% select(ADM2_NAME,ADM1_NAME) %>%
 
 som_settlements_summary <- data.frame(som_settlements_summary) %>%  select("ADM2_NAME", "settlem_num")
 
+<<<<<<< HEAD
 #join into one data set
 analysis_df_list<-list(District_summary, som_settlements_summary,district_h2r)
 district_level <-purrr::reduce(analysis_df_list, left_join)
 
+=======
+#join into one dataset
+analysis_df_list<-list(District_summary, som_settlements_summary,district_h2r)
+# settlement_joined<-purrr::reduce(analysis_df_list, left_join(by= c("D.info_state","D.info_county", "D.info_settlement")))
+district_level <-purrr::reduce(analysis_df_list, left_join)
+
+
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 #Grid level aggregation---------
 hex_400_h2r <-butteR::mean_proportion_table(design = dfsvy_h2r_district,
                                             list_of_variables = h2r_columns,
@@ -317,12 +513,22 @@ hex_400_h2r <-butteR::mean_proportion_table(design = dfsvy_h2r_district,
 
 
 
+<<<<<<< HEAD
 grid_summary_400km <- settlement_level %>%  select(hex_4000km,ADM1_NAME,D.ki_coverage) %>%
+=======
+grid_summary_400km <- setlement_level %>%  select(hex_4000km,ADM1_NAME,D.ki_coverage) %>%
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
   group_by(hex_4000km) %>%
   summarise(assessed_num = n(), ki_num=sum(D.ki_coverage) )
 
 grid_summary_400km <- data.frame(grid_summary_400km) %>%  select("hex_4000km", "assessed_num" ,  "ki_num" )
+<<<<<<< HEAD
 grid_400km <- inner_join(grid_summary_400km,hex_400_h2r, by="hex_4000km")
+=======
+
+grid_400km <- inner_join(grid_summary_400km,hex_400_h2r, by="hex_4000km")
+
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 names(grid_400km)[names(grid_400km) == "D.ki_coverage"] <- "D.ki_coverage"
 names(grid_400km)[names(grid_400km) == "sett_num"] <- "sett_num"
 
@@ -331,8 +537,13 @@ names(grid_400km)[names(grid_400km) == "sett_num"] <- "sett_num"
 #Better to export these directly as shapefile but the data can be used in other platforms and a simple join with existing shapefiles will do
 
 #Settlement level
+<<<<<<< HEAD
 settlement_level <- settlement_level %>% select(everything(), - contains(c(".other",".dontknow",".noresponse")))
 names(settlement_level) <- gsub("\\.", "_", names(settlement_level))
+=======
+setlement_level <- setlement_level %>% select(everything(), - contains(c(".other",".dontknow",".noresponse")))
+names(setlement_level) <- gsub("\\.", "_", names(setlement_level))
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 
 
 #grid_level
@@ -351,11 +562,19 @@ today<-format(today, format="_%Y_%b_%d")
 
 #Export data sets on different area levels
 
+<<<<<<< HEAD
 list_of_datasets <- list("settlement_aggregation" = settlement_level, "Aggregation by region" = region_h2r, "Aggregation by district" = district_level, "Aggregation by hex 400km"= grid_level)
 
 write.csv(grid_level, paste0("outputs/Aggregation_hex_400km",today,".csv"), row.names=FALSE)
 write.csv(district_level,paste0("outputs/Aggregation_district",today,".csv"), row.names=FALSE)
 write.csv(settlement_level,paste0("outputs/Aggregation_settlement",today,".csv"), row.names=FALSE)
+=======
+list_of_datasets <- list("settlement_aggregation" = setlement_level, "Aggregation by region" = region_h2r, "Aggregation by district" = district_level, "Aggregation by hex 400km"= grid_level)
+
+write.csv(grid_level, paste0("outputs/Aggregation_hex_400km",today,".csv"), row.names=FALSE)
+write.csv(district_level,paste0("outputs/Aggregation_district",today,".csv"), row.names=FALSE)
+write.csv(setlement_level,paste0("outputs/Aggregation_settlement",today,".csv"), row.names=FALSE)
+>>>>>>> d3589171d439fa177326b876c9c2cd038341dff6
 
 #Export FS columns
 
