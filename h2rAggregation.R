@@ -2,7 +2,7 @@
                                                                     ########README########
                                                                     ######################
 
-                                                    #If the survey tool changes, one will have to double-check:
+                      #If the survey tool changes (names of variables, or new variables or choices), one will have to double-check:
                                                       ### New variables without skip-logic in "no_skip_list"
                                                       ### New & missing variables in "select_single" list
 
@@ -23,7 +23,7 @@ setwd("C:/Users/Vanessa Causemann/Desktop/REACH/RStuff/Github/h2rAggregationSOM2
 #import data set
 df<-read.csv("h2r_Oct_2020_consolidated_mog_baidoa_clean.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))            #import with blanks being NA's
 
-#Spatial data folder_path
+#spatial data folder_path
 admin_gdb<- "inputs/gis_data/boundaries"
 
 #area data
@@ -56,7 +56,7 @@ no_skip_list<-c('base',
 #get index for no skip logic variables
 index_no_skip<-which(names(df)%in%no_skip_list)   
 
-#make all NA's to "SL", except variables without skiplogic
+#make all NA's to "SL", except variables without skip logic
 df[-index_no_skip][is.na(df[-index_no_skip])] <- "SL"
 
 ########RECODE VALUES IN DATA SET#########################################################################################################################################################################################################
@@ -80,7 +80,7 @@ df <- df  %>%
 
 ########GEOSPATIAL PREPARATION############################################################################################################################################################################################################
 
-#Spatial files regional, district, 10km hex, 6.7km hex and settlements files
+#spatial files regional, district, 10km hex, 6.7km hex and settlements files
 
 adm1<- st_read(admin_gdb,"Regional_boundary")
 adm1<-st_transform(adm1,crs=4326)
@@ -100,10 +100,10 @@ hex_400km <-st_transform(hex_400km,crs=4326)
 som_settlements <- st_read(admin_gdb,"Somalia_Setlements_Update_2702" )
 som_settlements <-st_transform(som_settlements,crs=4326)
 
-#Create a new column that combines what was mapped as other and has nearest settlement given, keep only data set with both columns and records have values
+#create a new column that combines what was mapped as other and has nearest settlement given, keep only data set where both columns and records have values
 df <- df %>% filter(!is.na(info_settlement)) %>%  mutate(finalsettlement= ifelse(info_settlement=="other",info_set_oth_near,info_settlement))
 
-#Join with the settlement data as some districts are blank if chosen near settlement
+#join with the settlement data as some districts are blank if chosen near settlement
 names(itemset)[names(itemset) == "calc.name"] <- "finalsettlement"
 item_geo <- itemset %>%  select(finalsettlement,calc.district,calc.region)
 item_geo <- distinct(item_geo,finalsettlement, .keep_all= TRUE)
@@ -111,7 +111,7 @@ df <- left_join(df,item_geo, by = "finalsettlement")
 
 #########AGGREGATE FUNCTION###############################################################################################################################################################################################################
 
-#Calculate mode, while outputting NC (No consensus) if we don't have a clear winner. While excluding and keeping distinction between SL (skip-logic) and NA
+#calculate mode, while outputting NC (No consensus) if we don't have a clear winner. While excluding and keeping distinction between SL (skip-logic) and NA
 
 AoK <- function(x) {
   ux <- unique(x[x!=is.na(x) & x!="SL"])                                                          #Exclude SL and NA
@@ -132,7 +132,7 @@ AoK <- function(x) {
   }
 }
 
-#########SORT VARIABLES INTO DUMMIES FROM MULTIPLE REPONSES AND SINGLE RESPONSES AND NOT NEEDED ONES######################################################################################################################################
+#########SORT VARIABLES INTO DUMMIES FROM MULTIPLE REPONSES / SINGLE RESPONSES / NOT NEEDED ONES######################################################################################################################################
 
 essential_col <- c("calc.region","calc.district","finalsettlement")
 
@@ -197,16 +197,17 @@ analysis_df_list<-list(settlement_single_choice, settlement_multiple_choice)
 
 settlement_data <-purrr::reduce(analysis_df_list, left_join)#, by= c("calc.district","calc.region", "finalsettlement"))
 
-#Combining settlement and county name for ArcGIS, also adding in a column for KI coverage
+#combining settlement and county name for ArcGIS, also adding in a column for KI coverage
 settlement_data <- settlement_data %>%
   ungroup() %>%
   mutate(D.ki_coverage = as.numeric(ki_coverage$ki_num))
 
-#Rearranging of columns in our new data set to be in the same order as in the original one
+#rearranging of columns in our new data set to be in the same order as in the original one
 settlement_data <- settlement_data %>% select(order(match(names(settlement_data), names(df))))
 
 #########FURTHER GEOSPATIAL PREPARATION#################################################################################################################################################################################################
 
+#only take areas with more than one KI reporting
 settlement_data <- settlement_data %>% 
   select(base:consent,calc.region, calc.district,finalsettlement,D.ki_coverage,info_settlement:names(settlement_data)[length(settlement_data)-4])%>% 
   filter(D.ki_coverage > 1)
@@ -230,14 +231,14 @@ write.csv(
   na = "",
   row.names = FALSE)
 
-#Join data to settlement shapefile
+#join data to settlement shapefile
 settlement_data$P_CODE <- settlement_data$finalsettlement
 settlement_data$month <- "20200901"
 som_settlements_data <- inner_join(som_settlements,settlement_data )
 som_settlements_data <-st_join( som_settlements_data, hex_400km)
 names(som_settlements_data)[names(som_settlements_data) == "GRID_ID"] <- "hex_4000km"
 
-#Settlement data with hexagons information
+#settlement data with hexagons information
 som_settlements_data <- som_settlements_data %>%
   select(OBJECTID_1,name,ADM1_NAME,ADM2_NAME,hex_4000km,base,consent,finalsettlement:names(settlement_data)[length(settlement_data)-2],geometry)
 
@@ -246,24 +247,18 @@ settlement_level <- som_settlements_data %>%   filter(!is.na(D.ki_coverage))
 
 #########REFORMATTING FOR butteR::mean_proportion_table##################################################################################################################################################################################
 
-#reformat variables with only one level to two in order to pass through butteR::mean_proportion_table (below)
+#adding on "expand_fix" level in order to pass through butteR::mean_proportion_table (below). Some variables have only one level, for those an artificial one needs to be added; after passing through the function it will get removed
 settlement_level<-as.data.frame(settlement_level)
 
-loop_index<-which(names(settlement_level)%in%select_multiple)
+index_multiple<-which(names(settlement_level)%in%select_multiple)
+index_single<-which(names(settlement_level)%in%select_single)
+index_loop<-c(index_multiple, index_single)
 
-for (i in loop_index){
-  settlement_level[,i] <- forcats::fct_expand(settlement_level[,i],c("yes","no"))
+for (i in index_loop){
+  settlement_level[,i] <- forcats::fct_expand(settlement_level[,i],c("expand_fix"))
 }
 
-#add variables at which butteR::mean_proportion_table breaks manually
-settlement_level$idp_arrived_from_reg <- forcats::fct_expand(settlement_level$idp_arrived_from_reg,c("SL","NA"))
-settlement_level$idp_arrived_from_district <- forcats::fct_expand(settlement_level$idp_arrived_from_district,c("SL","NA"))
-settlement_level$idp_arrived_from_district <- forcats::fct_expand(settlement_level$idp_arrived_from_district,c("SL","NA"))
-settlement_level$idp_arrived_from_district <- forcats::fct_expand(settlement_level$idp_arrived_from_district,c("SL","NA"))
-settlement_level$ngo_support_y_n <- forcats::fct_expand(settlement_level$ngo_support_y_n,c("no","yes"))
-settlement_level$women_services <- forcats::fct_expand(settlement_level$women_services,c("none","NA"))
-
-#########GEOSPATIAL AGGREGATION##########################################################################################################################################################################################################
+#########GEOSPATIAL AND MEAN PROPORTION AGGREGATION##########################################################################################################################################################################################################
 
 dfsvy_h2r_district <-srvyr::as_survey(settlement_level)
 
@@ -272,15 +267,13 @@ h2r_columns <- settlement_level %>%
   colnames() %>% 
   dput()
 
-#If butteR::mean_prop_working or butteR::mean_proportion_table gives out a warning with "applied only to factors with 2 or more levels" -> add on above lines with forcats::fct_expand
 #Region level aggregation-----------
-region_h2r <-butteR::mean_proportion_table(design = dfsvy_h2r_district,                    
-                                           list_of_variables = h2r_columns,
-                                           aggregation_level = "ADM1_NAME",
-                                           round_to = 1,
-                                           return_confidence = FALSE,
-                                           na_replace = FALSE
-)
+# <-butteR::mean_proportion_table(design = dfsvy_h2r_district,                    
+#                                           list_of_variables = h2r_columns,
+#                                           aggregation_level = "ADM1_NAME",
+#                                           round_to = 1,
+#                                           return_confidence = FALSE,
+#                                           na_replace = FALSE)
 
 #District level aggregation ----------
 district_h2r <-butteR::mean_proportion_table(design = dfsvy_h2r_district,
@@ -316,16 +309,12 @@ hex_400_h2r <-butteR::mean_proportion_table(design = dfsvy_h2r_district,
                                             na_replace = FALSE)
 
 
-
 grid_summary_400km <- settlement_level %>%  select(hex_4000km,ADM1_NAME,D.ki_coverage) %>%
   group_by(hex_4000km) %>%
   summarise(assessed_num = n(), ki_num=sum(D.ki_coverage) )
 
 grid_summary_400km <- data.frame(grid_summary_400km) %>%  select("hex_4000km", "assessed_num" ,  "ki_num" )
 grid_400km <- inner_join(grid_summary_400km,hex_400_h2r, by="hex_4000km")
-names(grid_400km)[names(grid_400km) == "D.ki_coverage"] <- "D.ki_coverage"
-names(grid_400km)[names(grid_400km) == "sett_num"] <- "sett_num"
-
 
 #Remove "." for use in ArcGIS -----
 #Better to export these directly as shapefile but the data can be used in other platforms and a simple join with existing shapefiles will do
@@ -334,14 +323,12 @@ names(grid_400km)[names(grid_400km) == "sett_num"] <- "sett_num"
 settlement_level <- settlement_level %>% select(everything(), - contains(c(".other",".dontknow",".noresponse")))
 names(settlement_level) <- gsub("\\.", "_", names(settlement_level))
 
-
 #grid_level
-grid_level <- grid_400km %>% select(everything(), - contains(c(".other",".dontknow",".noresponse")))
+grid_level <- grid_400km %>% select(everything(), - contains(c(".other",".dontknow",".noresponse", "expand_fix")))
 names(grid_level) <- gsub("\\.", "_", names(grid_level))
 
-
 #district_level
-district_level <- district_level %>% select(everything(), - contains(c(".other",".dontknow",".noresponse")))
+district_level <- district_level %>% select(everything(), - contains(c(".other",".dontknow",".noresponse", "expand_fix")))
 names(district_level) <- gsub("\\.", "_", names(district_level))
 
 #########EXPORT##########################################################################################################################################################################################################################
@@ -349,19 +336,14 @@ names(district_level) <- gsub("\\.", "_", names(district_level))
 today <- Sys.Date()
 today<-format(today, format="_%Y_%b_%d")
 
-#Export data sets on different area levels
-
-list_of_datasets <- list("settlement_aggregation" = settlement_level, "Aggregation by region" = region_h2r, "Aggregation by district" = district_level, "Aggregation by hex 400km"= grid_level)
-
+#export data sets on different area levels
 write.csv(grid_level, paste0("outputs/Aggregation_hex_400km",today,".csv"), row.names=FALSE)
 write.csv(district_level,paste0("outputs/Aggregation_district",today,".csv"), row.names=FALSE)
 write.csv(settlement_level,paste0("outputs/Aggregation_settlement",today,".csv"), row.names=FALSE)
 
-#Export FS columns
-
+#export FS columns
 grid_level_fs <- grid_level %>% 
   select(c( "hex_4000km" ,"ki_num","assessed_num", "food_price_changed_prices_increased", "education_bar_cost_stud",
             "access_healthservices_no", "health_workers_available_yes", "protection_incidents_none_no", "dam_shelter_yes", 
             "handwashing_access_no", "sources_covid_informaiton_mobile_network_operator_yes"))                                      
 write.csv(grid_level_fs,paste0("outputs/fs_Aggreg_by_hex_400km",today,".csv"), row.names=FALSE)
-
