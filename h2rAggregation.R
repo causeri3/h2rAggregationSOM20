@@ -21,7 +21,7 @@ library(srvyr)
 setwd("C:/Users/Vanessa Causemann/Desktop/REACH/RStuff/Github/h2rAggregationSOM20")
 
 #import data set
-df<-read.csv("h2r_Oct_2020_consolidated_mog_baidoa_clean.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))            #import with blanks being NA's
+df<-read.csv("h2r_Oct_2020_consolidated_mog_baidoa_clean.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))              #import with blanks being NA's
 
 #spatial data folder_path
 admin_gdb<- "inputs/gis_data/boundaries"
@@ -29,6 +29,14 @@ admin_gdb<- "inputs/gis_data/boundaries"
 #area data
 itemset<-read.csv("inputs/2020_01/itemsets.csv", stringsAsFactors = FALSE)
 colnames(itemset)<-paste0("calc.",colnames(itemset))
+
+#import csv with NC dependencies defined
+NC_depend<-read.csv("inputs/h2r_NC_dep_Oct_2020.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))                       #import with blanks being NA's
+NC_depend<-NC_depend[!is.na(NC_depend[,1]),]                                                                                                       #remove rows that sneaked in by Excel
+
+#import csv with SL dependencies defined
+SL_depend<-read.csv("inputs/h2r_SL_dep_Oct_2020.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))                       #import with blanks being NA's
+SL_depend<-SL_depend[!is.na(SL_depend[,1]),]                                                                                                       #remove rows that sneaked in by Excel
 
 ##########################################################################################################################################################################################################################################
 
@@ -114,21 +122,25 @@ df <- left_join(df,item_geo, by = "finalsettlement")
 #calculate mode, while outputting NC (No consensus) if we don't have a clear winner. While excluding and keeping distinction between SL (skip-logic) and NA
 
 AoK <- function(x) {
-  ux <- unique(x[x!=is.na(x) & x!="SL"])                                                          #Exclude SL and NA
-  if (length(which(tabulate(match(x, ux)) == max(tabulate(match(x, ux))))) > 1) {                 #if more than one mode -> NC
+  ux <- unique(x[x!=is.na(x) & x!="SL"])                                                           #Exclude SL and NA
+  #if (length(x[x!=is.na(x) & x!="SL"])== 1)                                                       #approach to check which variables have only 1 answer
+  #{return("only_1_answer")}
+  #else{
+  if (length(which(tabulate(match(x, ux)) == max(tabulate(match(x, ux))))) > 1) {                  #if more than one mode -> NC
     return("NC")
   }
   else {                  
-    if (length(ux)!=0){                                                                         #otherwise and if not only NA or SL -> return the mode
+    if (length(ux)!=0){                                                                            #otherwise and if not only NA or SL -> return the mode
       ux[which.max(tabulate(match(x, ux)))]                                                     
     }
-    else {if ("SL" %in%  x){                                                                    #otherwise if containing SL -> SL , if not -> NA
+    else {if ("SL" %in%  x){                                                                       #otherwise if containing SL -> SL , if not -> NA
       return("SL")
     }
       else{
         return(NA)
       }
     }
+ # }
   }
 }
 
@@ -205,6 +217,20 @@ settlement_data <- settlement_data %>%
 #rearranging of columns in our new data set to be in the same order as in the original one
 settlement_data <- settlement_data %>% select(order(match(names(settlement_data), names(df))))
 
+##########NC- & SL-DEPENDENCY LOOPS################################################################################################################################################################################################################################
+
+for (i in 1:dim(NC_depend)[1]){
+  index_NC_depend<-which(names(settlement_data)%in%NC_depend[i,2:dim(NC_depend)[2]])
+  index_NC_rows<- which(settlement_data[NC_depend[i,1]]=="NC")
+  settlement_data[index_NC_rows,index_NC_depend]<-"NC"
+}
+
+for (i in 1:dim(SL_depend)[1]){
+  index_SL_depend<-which(names(settlement_data)%in%SL_depend[i,3:dim(SL_depend)[2]])
+  index_SL_rows<- which(settlement_data[SL_depend[i,1]]==SL_depend[i,2])
+  settlement_data[index_SL_rows,index_SL_depend]<-"SL"
+}
+
 #########FURTHER GEOSPATIAL PREPARATION#################################################################################################################################################################################################
 
 #only take areas with more than one KI reporting
@@ -244,7 +270,6 @@ som_settlements_data <- som_settlements_data %>%
 
 settlement_level <- som_settlements_data %>%   filter(!is.na(D.ki_coverage))
 
-
 #########REFORMATTING FOR butteR::mean_proportion_table##################################################################################################################################################################################
 
 #adding on "expand_fix" level in order to pass through butteR::mean_proportion_table (below). Some variables have only one level, for those an artificial one needs to be added; after passing through the function it will get removed
@@ -282,7 +307,6 @@ district_h2r <-butteR::mean_proportion_table(design = dfsvy_h2r_district,
                                              round_to = 2,
                                              return_confidence = FALSE,
                                              na_replace = FALSE)
-
 
 District_summary <- settlement_level %>%  select(ADM2_NAME,ADM1_NAME,D.ki_coverage) %>%
   group_by(ADM2_NAME) %>%
