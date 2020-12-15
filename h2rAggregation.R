@@ -261,8 +261,16 @@ write.csv(
 settlement_data$P_CODE <- settlement_data$finalsettlement
 settlement_data$month <- "20200901"
 som_settlements_data <- inner_join(som_settlements,settlement_data )
-som_settlements_data <-st_join( som_settlements_data, hex_400km)
+som_settlements_data <-st_join(som_settlements_data, hex_400km)
 names(som_settlements_data)[names(som_settlements_data) == "GRID_ID"] <- "hex_4000km"
+
+#join data to settlement shapefile for market settlement locations
+market_settlement<-settlement_data["market_settlement"]
+market_settlement$P_CODE <- market_settlement$market_settlement
+market_settlement <- inner_join(som_settlements,market_settlement,  by = "P_CODE")
+market_settlement <-st_join(market_settlement, hex_400km)
+names(market_settlement)[names(market_settlement) == "GRID_ID"] <- "hex_4000km_market"
+
 
 #settlement data with hexagons information
 som_settlements_data <- som_settlements_data %>%
@@ -364,6 +372,7 @@ today<-format(today, format="_%Y_%b_%d")
 write.csv(grid_level, paste0("outputs/Aggregation_hex_400km",today,".csv"), row.names=FALSE)
 write.csv(district_level,paste0("outputs/Aggregation_district",today,".csv"), row.names=FALSE)
 write.csv(settlement_level,paste0("outputs/Aggregation_settlement",today,".csv"), row.names=FALSE)
+write.csv(market_settlement,paste0("outputs/market_locations_hex_400km",today,".csv"), row.names=FALSE)
 
 #export FS columns
 grid_level_fs <- grid_level %>% 
