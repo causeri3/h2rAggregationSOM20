@@ -70,21 +70,30 @@ df[-index_no_skip][is.na(df[-index_no_skip])] <- "SL"
 ########RECODE VALUES IN DATA SET#########################################################################################################################################################################################################
 
 df[ df == "dontknow" ] <- NA
+df[ df == "cleaned" ] <- NA
 
 #create variables for analysis
 
 df <- df  %>%  
-  mutate(health_workers_available = case_when((how_often_provide_health =="once_a_week") ~ "yes",
+  mutate(health_workers_available = case_when(how_often_provide_health =="once_a_week" ~ "yes",
                                               how_often_provide_health == "2_3_times_month" ~ "yes",
                                               how_often_provide_health == "once_a_month" ~ "yes",
                                               how_often_provide_health == "less_frequently" ~ "yes",
                                               TRUE ~ "no")) %>%
-  mutate(dam_shelter = case_when((dam_shelters_reason == "flooding") ~ "yes",
+  
+  mutate(dam_shelter = case_when(dam_shelters_reason == "flooding" ~ "yes",
                                  dam_shelters_reason == "conflict_looting" ~ "yes",
                                  dam_shelters_reason == "fire" ~ "yes",
                                  TRUE ~ "no")) %>%
   
-  mutate(education_bar = ifelse(education_bar_boys == education_bar_girls,education_bar_boys, "NC"))
+  mutate(education_bar = ifelse(education_bar_boys == education_bar_girls,education_bar_boys, "NC")) %>%
+  
+  mutate(shelters_not_rebuilt_dummy = case_when(shelters_not_rebuilt == "around_half" ~ "yes",
+                                                       shelters_not_rebuilt == "less_half" ~ "no",
+                                                       shelters_not_rebuilt == "more_half" ~ "yes",
+                                                       shelters_not_rebuilt == "all" ~ "yes",
+                                                       shelters_not_rebuilt == "SL" ~ "SL"
+                                                       ))
 
 ########GEOSPATIAL PREPARATION############################################################################################################################################################################################################
 
@@ -160,7 +169,7 @@ select_single <- c("consent", "base","ppl_no_land_tenure", "depart_return_safe",
                    "idp_arrived_from_reg", "idp_arrived_from_district","hc_push_main", "hc_push_second", "access_market", "market_region", "market_district", "market_settlement",
                    "distance_to_market", "food_situation", "food_source", "health_issues", "distance_clinic","region_clinic", "district_clinic", "settlement_clinic",
                    "idp_host_relationships","ppl_no_land_tenure","access_healthservices", "land_tenure_form", "depart_return_safe", "freedommov_day", "freedommov_night",
-                   "shelter_type", "dam_shelters_reason", "shelters_not_rebuilt", "shelt_not_rebuilt_why", "mainsource_water", "gettingwater_time", "people_using_latrines",
+                   "shelter_type", "dam_shelters_reason", "shelters_not_rebuilt", "shelt_not_rebuilt_why", "shelters_not_rebuilt_dummy", "mainsource_water", "gettingwater_time", "people_using_latrines",
                    "waste_disposal", "time_to_school", "education_bar_girls", "education_bar_boys","info_personsource", "road_connection_y_n", "food_price_changed", "nfi_price_changed", 
                    "soap_price_changed","how_often_provide_health", "idp_new_arrivals","skip_meals","unaccompanied_child_y_n", "cases_eviction", "ppl_no_shelter", "surfacewater_drinking",
                    "water_sufficient_lastmonth","water_seasonal", "stagnant_water_near", "info_ngo_y_n", "ngo_support_y_n", "plane_connection_y_n","particip_again", "handwashing_access",  
