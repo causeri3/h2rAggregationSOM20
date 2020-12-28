@@ -1,11 +1,12 @@
                                                                     ######################
                                                                     ########README########
                                                                     ######################
-                      #Add file names for clean data Baidoa and Mogadishu under header IMPORTS (both need to be saved as csv-file in the inputs folder)
+                      #Change working directory (setwd) and add file names for clean data Baidoa and Mogadishu under header IMPORTS (both need to be saved as csv-file in the inputs folder)
                       #If the survey tool changes (names of variables, or new variables), one will have to double-check:
                                                       ### In case those variables are without skip-logic, put in "no_skip_list"
                                                       ### In case those variables need to be excluded from aggregation, put in "not_needed_columns" list
                                                       ### Check if NC and SL dependency csv-files in "inputs/dependencies_SL_NC" are up to date, if not add logic of those variables
+                      #If more variables for FS outputs are needed: Add on in list "FS_vars" in the end of the script
                       #Output-naming assumes aggregation of clean data from one month before (change values "agg_date" and "agg_month" accordingly, i.e. change -1 to -2 if two months ago or -0 if same month etc.)
 
 ########LOAD PACKAGES#####################################################################################################################################################################################################################
@@ -51,7 +52,7 @@ join_check <- function(x,y) {
 #############################
 
 #check for and remove duplicates
-deal_with_doup<- function(x){
+deal_with_dup<- function(x){
   doublicates <- grep("[.]1", names(x), value = TRUE)
   if (length(doublicates)==0)
   {print('No doublicates')}
@@ -96,6 +97,7 @@ setwd("C:/Users/Vanessa Causemann/Desktop/REACH/RStuff/Github/h2rAggregationSOM2
 #import data set
 df_baidoa<-read.csv("inputs/SOM1901_H2R_Baidoa_Clean Data_November.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))              #import with blanks being NA's
 df_mogadishu<-read.csv("inputs/SOM1901_H2R_Mogadishu_Clean Data_November.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))        #import with blanks being NA's
+#df<-read.csv("inputs/h2r_Oct_2020_consolidated_mog_baidoa_clean.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))              #import with blanks being NA's
 
 #see if columns are identical
 join_check(df_baidoa,df_mogadishu)
@@ -104,7 +106,10 @@ join_check(df_baidoa,df_mogadishu)
 df<-rbind(df_baidoa,df_mogadishu)
 
 #check for and remove duplicates
-deal_with_doup(df)
+deal_with_dup(df)
+
+#only keep observations from target regions
+df<-df[df$info_reg=="bakool"|df$info_reg=="bay"|df$info_reg=="gedo"|df$info_reg=="lower_juba"|df$info_reg=="middle_juba"|df$info_reg=="lower_shabelle"|df$info_reg=="middle_shabelle",]
 
 #spatial data folder_path
 admin_gdb<- "inputs/gis_data/boundaries"
@@ -415,10 +420,18 @@ write.csv(grid_level, paste0("outputs/SOM1901_H2R_hex_400km_", agg_month,".csv")
 write.csv(settlement_level,paste0("outputs/SOM1901_H2R_settlement_aggregation_", agg_month,".csv"), row.names=FALSE)
 write.csv(market_settlement,paste0("outputs/SOM1901_H2R_hex_400km_market_locations_", agg_month,".csv"), row.names=FALSE)
 
+#select FS variables by which answers of the following list are still there after the aggregation
+FS_vars<- (c( "hex_4000km" ,"ki_num","assessed_num", "food_price_changed_prices_increased", "education_bar_cost_stud",
+    "access_healthservices_no", "health_workers_available_yes", "protection_incidents_none_no", "dam_shelter_yes", 
+    "handwashing_access_no", "sources_covid_informaiton_mobile_network_operator_yes", "shelters_not_rebuilt_around_half",
+    "shelters_not_rebuilt_less_half","shelters_not_rebuilt_more_half", "shelters_not_rebuilt_dummy_NC", "shelters_not_rebuilt_dummy_SL", 
+    "shelters_not_rebuilt_dummy_yes", "shelters_not_rebuilt_dummy_no", "dam_shelters_reason_conflict_looting","dam_shelters_reason_fire", 
+    "dam_shelters_reason_flooding", "food_situation_worse", "food_source_bought_cash", "food_source_given_someone",
+    "food_situation_improved", "food_situation_remained_same", "food_situation_NC" ))       
+select_FS<-names(grid_level)[names(grid_level) %in% FS_vars ==TRUE]
+check_not_this_month<-FS_vars[FS_vars %in% names(grid_level) ==FALSE]
+print(paste0("Choice not in aggregation for this month and therefore excluded: ", check_not_this_month))
+grid_level_fs <- grid_level[select_FS]
 
-#export FS columns
-grid_level_fs <- grid_level %>% 
-  select(c( "hex_4000km" ,"ki_num","assessed_num", "food_price_changed_prices_increased", "education_bar_cost_stud",
-            "access_healthservices_no", "health_workers_available_yes", "protection_incidents_none_no", "dam_shelter_yes", 
-            "handwashing_access_no", "sources_covid_informaiton_mobile_network_operator_yes"))                                      
+#export FS output
 write.csv(grid_level_fs,paste0("outputs/SOM1901_H2R_hex_400km_FS_",agg_month,".csv"), row.names=FALSE)
