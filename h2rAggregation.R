@@ -1,15 +1,68 @@
-                                                                    ######################
-                                                                    ########README########
-                                                                    ######################
-                      #Change working directory (setwd) and add file names for clean data Baidoa and Mogadishu under header IMPORTS (both need to be saved as csv-file in the inputs folder)
-                      #If the survey tool changes (names of variables, or new variables), one will have to double-check:
-                                                      ### In case those variables are without skip-logic, put in "no_skip_list"
-                                                      ### In case those variables need to be excluded from aggregation, put in "not_needed_columns" list
-                                                      ### Check if NC and SL dependency csv-files in "inputs/dependencies_SL_NC" are up to date, if not add logic of those variables
-                      #If more variables for FS outputs are needed: Add on in list "FS_vars" in the end of the script
-                      #Output-naming assumes aggregation of clean data from one month before (change values "agg_date" and "agg_month" accordingly, i.e. change -1 to -2 if two months ago or -0 if same month etc.)
 
-########LOAD PACKAGES#####################################################################################################################################################################################################################
+#_______________________________________________________________________________________________________________________________________________________________#
+#_______________________________________________________________________________________________________________________________________________________________#
+#                                                                                                                                                               #
+#                                                                      ######################                                                                   #
+#                                                                      ########README########                                                                   #
+#                                                                      ######################                                                                   #
+#_________INPUTS:                                                                                                                                               #
+#                                                                                                                                                               #
+#               °Folder 'inputs':                                                                                                                               #
+#                  - Clean data sets for month to be aggregated                                                                                                 #
+#                   * e.g. 'SOM1901_H2R_Baidoa_Clean Data_November.csv' & 'SOM1901_H2R_Mogadishu_Clean Data_November.csv'                                       #
+#                                                                                                                                                               #
+#               °Folder 'inputs/dependencies_SL_NC':                                                                                                            #
+#                  -  'h2r_NC_dep_Oct_2020.csv'                               [Non-Consensus dependencies]                                                      #
+#                  -  'h2r_SL_dep_Oct_2020.csv'                               [Skip-Logic dependencies]                                                         #
+#                                                                                                                                                               #
+#                °Folder 'inputs/gis_data':                                                                                                                     #
+#                   - 'itemsets.csv'                                          [georgraphical lists]                                                             #
+#                   -  Folder: 'inputs/gis_data/boundaries'                   [various shapefiles with geographical boundaries]                                 #
+#_______________________________________________________________________________________________________________________________________________________________#
+#                                                                                                                                                               #
+#________OUTPUTS:                                                                                                                                               #
+#                                                                                                                                                               #
+#               ° Folder "outputs"                                                                                                                              #
+#                   - 'SOM1901_H2R__clean_data_agg_date01.csv'                [Back-up of clean and by mode aggregated data]                                    #                
+#                                                                                                                                                               #
+#                   - 'SOM1901_H2R_settlement_aggregation_agg_month.csv'      [Dataset aggregated to the settlement level]                                      #
+#                     * Which is based on no less than 2 respondents per settlement,and includes settlements that are located ONLY within the target regions:   #
+#                       Bay, Bakool, Gedo, Middle Shabelle, Lower Shabelle, Middle Juba and Lower Juba.                                                         #
+#                                                                                                                                                               #
+#                   - 'SOM1901_H2R_hex_400km_agg_month.csv                    [Dataset aggregated to the hexagon level that is used for producing the maps]     #
+#                                                                                                                                                               #
+#                   - 'SOM1901_H2R_hex_400km_market_locations_agg_month.csv'  [Market location at the hexagon level that is used for producing the maps]        #
+#                                                                                                                                                               #
+#                   [- 'SOM1901_aggregation_district_agg_month.csv'           [Dataset aggregated to the district level, * at the moment hashtagged/inactive]]  #
+#                                                                                                                                                               #
+#                   - SOM1901_H2R_hex_400km_FS_agg_month.csv                  [Specific variables aggregated to the hexagon level for Fact Sheet [FS] outputs]  #
+#_______________________________________________________________________________________________________________________________________________________________#
+#                                                                                                                                                               #
+#_______INSTRUCTIONS:                                                                                                                                           #
+#                                                                                                                                                               #
+#               ° Check that you have the right version of the package 'srvyr' installed, see under LOAD PACKAGES                                               #
+#                                                                                                                                                               #               
+#               ° Change working directory (setwd) and add file names for clean data Baidoa and Mogadishu under header IMPORTS                                  #  
+#                   [both need to be saved as csv-file in the inputs folder]                                                                                    #
+#                                                                                                                                                               #                                                                                                                                                #
+#               ° If the survey tool changes (names of variables, or new variables), one will have to double-check:                                             #        
+#                  -> In case those variables are without skip-logic, put in 'no_skip_list'                                                                     #
+#                  -> In case those variables need to be excluded from aggregation, put in 'not_needed_columns' list                                            #
+#                  -> Check if NC and SL dependency csv-files in "inputs/dependencies_SL_NC" are defined accordingly to the methodology                         #
+#                       [The lists contains main and dependent questions:                                                                                       #
+#                         Whenever the main question results in SL/NC during aggregation, the dependent questions become SL/NC.]                                #
+#                                                                                                                                                               #
+#               ° If more variables for FS outputs are needed: Add on in list "FS_vars" in the end of the script                                                #
+#                                                                                                                                                               #
+#               ° Output-naming assumes aggregation of clean data from one month before                                                                         #
+#                  -> Change values "agg_date" and "agg_month" accordingly, i.e. change -1 to -2 if two months ago or -0 if same month etc.                     #
+#                                                                                                                                                               #
+#               ° In case target regions change, update files in 'inputs/gis_data' with help from GIS-Officer accordingly                                       #            
+#_______________________________________________________________________________________________________________________________________________________________#
+#_______________________________________________________________________________________________________________________________________________________________#
+
+
+########LOAD PACKAGES###############################################################################################################################################################################
 
 #remotes::install_github("elliottmess/butter")
 #!!!#fix for butteR:
@@ -21,7 +74,7 @@ library(sf)
 library(srvyr)
 library(lubridate)
 
-########FUNCTIONS#########################################################################################################################################################################################################################
+########FUNCTIONS###################################################################################################################################################################################
 
 ###########################
 #####CHECK BEFORE JOIN#####
@@ -91,13 +144,12 @@ AoK <- function(x) {
   }
 }
 
-########IMPORTS###########################################################################################################################################################################################################################
-setwd("C:/Users/Vanessa Causemann/Desktop/REACH/RStuff/Github/h2rAggregationSOM20")
+########IMPORTS#####################################################################################################################################################################################
 
-#import data set
-df_baidoa<-read.csv("inputs/SOM1901_H2R_Baidoa_Clean Data_November.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))              #import with blanks being NA's
-df_mogadishu<-read.csv("inputs/SOM1901_H2R_Mogadishu_Clean Data_November.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))        #import with blanks being NA's
-#df<-read.csv("inputs/h2r_Oct_2020_consolidated_mog_baidoa_clean.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))              #import with blanks being NA's
+#import data set with blanks being NA's
+df_baidoa<-read.csv("inputs/SOM1901_H2R_Baidoa_Clean Data_November.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))              
+df_mogadishu<-read.csv("inputs/SOM1901_H2R_Mogadishu_Clean Data_November.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))        
+#df<-read.csv("inputs/h2r_Oct_2020_consolidated_mog_baidoa_clean.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))              
 
 #see if columns are identical
 join_check(df_baidoa,df_mogadishu)
@@ -119,14 +171,14 @@ itemset<-read.csv("inputs/gis_data/itemsets.csv", stringsAsFactors = FALSE)
 colnames(itemset)<-paste0("calc.",colnames(itemset))
 
 #import csv with NC dependencies defined
-NC_depend<-read.csv("inputs/dependencies_SL_NC/h2r_NC_dep_Oct_2020.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))                       #import with blanks being NA's
-NC_depend<-NC_depend[!is.na(NC_depend[,1]),]                                                                                                       #remove rows that sneaked in by Excel
+NC_depend<-read.csv("inputs/dependencies_SL_NC/h2r_NC_dep_Oct_2020.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))               #import with blanks being NA's
+NC_depend<-NC_depend[!is.na(NC_depend[,1]),]                                                                                                                  #remove rows that sneaked in by Excel
 
 #import csv with SL dependencies defined
-SL_depend<-read.csv("inputs/dependencies_SL_NC/h2r_SL_dep_Oct_2020.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))                       #import with blanks being NA's
-SL_depend<-SL_depend[!is.na(SL_depend[,1]),]                                                                                                       #remove rows that sneaked in by Excel
+SL_depend<-read.csv("inputs/dependencies_SL_NC/h2r_SL_dep_Oct_2020.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))               #import with blanks being NA's
+SL_depend<-SL_depend[!is.na(SL_depend[,1]),]                                                                                                                  #remove rows that sneaked in by Excel
 
-########SKIP LOGIC########################################################################################################################################################################################################################
+########SKIP LOGIC##################################################################################################################################################################################
 
 #fill in variables that have no skiplogic
 no_skip_list<-c('base',
@@ -149,7 +201,7 @@ index_no_skip<-which(names(df)%in%no_skip_list)
 #make all NA's to "SL", except variables without skip logic
 df[-index_no_skip][is.na(df[-index_no_skip])] <- "SL"
 
-########RECODE VALUES IN DATA SET#########################################################################################################################################################################################################
+########RECODE VALUES IN DATA SET###################################################################################################################################################################
 
 df[ df == "dontknow" ] <- NA
 df[ df == "cleaned" ] <- NA
@@ -177,7 +229,7 @@ df <- df  %>%
                                                        shelters_not_rebuilt == "SL" ~ "SL"
                                                        ))
 
-########GEOSPATIAL PREPARATION############################################################################################################################################################################################################
+########GEOSPATIAL PREPARATION######################################################################################################################################################################
 
 #spatial files regional, district, 10km hex, 6.7km hex and settlements files
 
@@ -208,7 +260,7 @@ item_geo <- itemset %>%  select(finalsettlement,calc.district,calc.region)
 item_geo <- distinct(item_geo,finalsettlement, .keep_all= TRUE)
 df <- left_join(df,item_geo, by = "finalsettlement")
 
-#########SORT VARIABLES INTO DUMMIES FROM MULTIPLE REPONSES / SINGLE RESPONSES / NOT NEEDED ONES######################################################################################################################################
+#########SORT VARIABLES INTO DUMMIES FROM MULTIPLE REPONSES / SINGLE RESPONSES / NOT NEEDED ONES####################################################################################################
 
 essential_col <- c("calc.region","calc.district","finalsettlement")
 
@@ -245,7 +297,7 @@ select_single<-names(df)[names(df) %in% select_multiple ==FALSE]
 select_single<-select_single[select_single %in% not_needed_columns ==FALSE]
 select_single<-select_single[select_single %in% essential_col ==FALSE]
 
-#########AGGREGATE BY MODE OR DISPLAY TIE ("NC")######################################################################################################################################################################################
+#########AGGREGATE BY MODE OR DISPLAY TIE ("NC")####################################################################################################################################################
 
 settlement_single_choice <- df %>%
   select(all_of(essential_col), all_of(select_single)) %>%
@@ -257,7 +309,7 @@ settlement_multiple_choice <- select_multiple_df %>%
   group_by(.dots = c( "calc.region","calc.district","finalsettlement")) %>%
   summarise_all(list(AoK))
 
-#########JOIN GEOSPATIAL AND SURVEY DATA#####################################################################################################################################################################################################
+#########JOIN GEOSPATIAL AND SURVEY DATA############################################################################################################################################################
 
 ki_coverage <- df %>%
   select(calc.region,calc.district,finalsettlement, particip_again) %>%
@@ -276,7 +328,7 @@ settlement_data <- settlement_data %>%
 #rearranging of columns in our new data set to be in the same order as in the original one
 settlement_data <- settlement_data %>% select(order(match(names(settlement_data), names(df))))
 
-##########NC- & SL-DEPENDENCY LOOPS################################################################################################################################################################################################################################
+##########NC- & SL-DEPENDENCY LOOPS#################################################################################################################################################################
 
 for (i in 1:dim(NC_depend)[1]){
   index_NC_depend<-which(names(settlement_data)%in%NC_depend[i,2:dim(NC_depend)[2]])
@@ -290,7 +342,7 @@ for (i in 1:dim(SL_depend)[1]){
   settlement_data[index_SL_rows,index_SL_depend]<-"SL"
 }
 
-#########FURTHER GEOSPATIAL PREPARATION#################################################################################################################################################################################################
+#########FURTHER GEOSPATIAL PREPARATION#############################################################################################################################################################
 
 #only take areas with more than one KI reporting
 settlement_data <- settlement_data %>% 
@@ -325,11 +377,12 @@ som_settlements_data <- som_settlements_data %>%
 
 settlement_level <- som_settlements_data %>%   filter(!is.na(D.ki_coverage))
 
-#########REFORMATTING FOR butteR::mean_proportion_table##################################################################################################################################################################################
+#########REFORMATTING FOR butteR::mean_proportion_table#############################################################################################################################################
 
-#adding on "expand_fix" level in order to pass through butteR::mean_proportion_table (below). Some variables have only one level, for those an artificial one needs to be added; after passing through the function it will get removed
+#adding on "expand_fix" level in order to pass through butteR::mean_proportion_table (below). 
+#Some variables have only one level, for those an artificial one needs to be added; after passing through the function it will get removed
+
 settlement_level<-as.data.frame(settlement_level)
-
 index_multiple<-which(names(settlement_level)%in%select_multiple)
 index_single<-which(names(settlement_level)%in%select_single)
 index_loop<-c(index_multiple, index_single)
@@ -338,7 +391,7 @@ for (i in index_loop){
   settlement_level[,i] <- forcats::fct_expand(settlement_level[,i],c("expand_fix"))
 }
 
-#########GEOSPATIAL AND MEAN PROPORTION AGGREGATION##########################################################################################################################################################################################################
+#########GEOSPATIAL AND MEAN PROPORTION AGGREGATION#################################################################################################################################################
 
 dfsvy_h2r_district <-srvyr::as_survey(settlement_level)
 
@@ -409,14 +462,14 @@ names(grid_level) <- gsub("\\.", "_", names(grid_level))
 #district_level <- district_level %>% select(everything(), - contains(c(".other",".dontknow",".noresponse", "expand_fix")))
 #names(district_level) <- gsub("\\.", "_", names(district_level))
 
-#########EXPORT##########################################################################################################################################################################################################################
+#########EXPORT#####################################################################################################################################################################################
 #date to label export
 today <- Sys.Date()
 agg_month<-today %m+% months(-1)
 agg_month<-format(agg_month, format="%b_%Y")
 
 write.csv(grid_level, paste0("outputs/SOM1901_H2R_hex_400km_", agg_month,".csv"), row.names=FALSE)
-#write.csv(district_level,paste0("outputs/SOM1901_aggregation_district", agg_month,".csv"), row.names=FALSE)
+#write.csv(district_level,paste0("outputs/SOM1901_aggregation_district_", agg_month,".csv"), row.names=FALSE)
 write.csv(settlement_level,paste0("outputs/SOM1901_H2R_settlement_aggregation_", agg_month,".csv"), row.names=FALSE)
 write.csv(market_settlement,paste0("outputs/SOM1901_H2R_hex_400km_market_locations_", agg_month,".csv"), row.names=FALSE)
 
