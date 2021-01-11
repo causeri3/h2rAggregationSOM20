@@ -46,7 +46,7 @@
 #                                                                                                                                                               #               
 #               ° Change working directory (setwd) and add file names for clean data Baidoa and Mogadishu under header IMPORTS                                  #  
 #                   [both need to be saved as csv-file in the inputs folder]                                                                                    #
-#                                                                                                                                                               #                                                                                                                                                #
+#                                                                                                                                                               #                 
 #               ° If the survey tool changes (names of variables, or new variables), one will have to double-check:                                             #        
 #                  -> In case those variables are without skip-logic, put in 'no_skip_list'                                                                     #
 #                  -> In case those variables need to be excluded from aggregation, put in 'not_needed_columns' list                                            #
