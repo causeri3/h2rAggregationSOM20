@@ -18,7 +18,7 @@
 #                  -  'h2r_SL_dep_Oct_2020.csv'                               [Skip-Logic dependencies]                                                         #
 #                                                                                                                                                               #
 #                °Folder 'inputs/gis_data':                                                                                                                     #
-#                   - 'itemsets.csv'                                          [georgraphical lists]                                                             #
+#                   - 'itemsets.csv'                                          [geographical lists]                                                              #
 #                   -  Folder: 'inputs/gis_data/boundaries'                   [various shapefiles with geographical boundaries]                                 #
 #_______________________________________________________________________________________________________________________________________________________________#
 #                                                                                                                                                               #
@@ -29,13 +29,13 @@
 #                                                                                                                                                               #
 #                   - 'SOM1901_H2R_settlement_aggregation_agg_month.csv'      [Dataset aggregated to the settlement level]                                      #
 #                     * Which is based on no less than 2 respondents per settlement,and includes settlements that are located ONLY within the target regions:   #
-#                       Bay, Bakool, Gedo, Middle Shabelle, Lower Shabelle, Middle Juba and Lower Juba.                                                         #
+#                       Bay, Bakool, Gedo, Middle Shabelle, Lower Shabelle, Middle Juba and Lower Juba                                                          #
 #                                                                                                                                                               #
-#                   - 'SOM1901_H2R_hex_400km_agg_month.csv                    [Dataset aggregated to the hexagon level that is used for producing the maps]     #
+#                   - 'SOM1901_H2R_hex_400km_agg_month.csv                    [Data set aggregated to the hexagon level that is used for producing the maps]    #
 #                                                                                                                                                               #
 #                   - 'SOM1901_H2R_hex_400km_market_locations_agg_month.csv'  [Market location at the hexagon level that is used for producing the maps]        #
 #                                                                                                                                                               #
-#                   [- 'SOM1901_aggregation_district_agg_month.csv'           [Dataset aggregated to the district level, * at the moment hashtagged/inactive]]  #
+#                   [- 'SOM1901_aggregation_district_agg_month.csv'           [Data set aggregated to the district level, * at the moment hashtagged/inactive]] #
 #                                                                                                                                                               #
 #                   - SOM1901_H2R_hex_400km_FS_agg_month.csv                  [Specific variables aggregated to the hexagon level for Fact Sheet [FS] outputs]  #
 #_______________________________________________________________________________________________________________________________________________________________#
