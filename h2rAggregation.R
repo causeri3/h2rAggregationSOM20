@@ -9,22 +9,22 @@
 #                                                                                                                                                               #
 #_________INPUTS:                                                                                                                                               #
 #                                                                                                                                                               #
-#               °Folder 'inputs':                                                                                                                               #
+#               + Folder 'inputs':                                                                                                                              #
 #                  - Clean data sets for month to be aggregated                                                                                                 #
 #                   * e.g. 'SOM1901_H2R_Baidoa_Clean Data_November.csv' & 'SOM1901_H2R_Mogadishu_Clean Data_November.csv'                                       #
 #                                                                                                                                                               #
-#               °Folder 'inputs/dependencies_SL_NC':                                                                                                            #
+#               + Folder 'inputs/dependencies_SL_NC':                                                                                                           #
 #                  -  'h2r_NC_dep_Oct_2020.csv'                               [Non-Consensus dependencies]                                                      #
 #                  -  'h2r_SL_dep_Oct_2020.csv'                               [Skip-Logic dependencies]                                                         #
 #                                                                                                                                                               #
-#                °Folder 'inputs/gis_data':                                                                                                                     #
+#               + Folder 'inputs/gis_data':                                                                                                                     #
 #                   - 'itemsets.csv'                                          [geographical lists]                                                              #
 #                   -  Folder: 'inputs/gis_data/boundaries'                   [various shapefiles with geographical boundaries]                                 #
 #_______________________________________________________________________________________________________________________________________________________________#
 #                                                                                                                                                               #
 #________OUTPUTS:                                                                                                                                               #
 #                                                                                                                                                               #
-#               ° Folder "outputs"                                                                                                                              #
+#               + Folder "outputs"                                                                                                                              #
 #                   - 'SOM1901_H2R__clean_data_agg_date01.csv'                [Back-up of clean and by mode aggregated data]                                    #                
 #                                                                                                                                                               #
 #                   - 'SOM1901_H2R_settlement_aggregation_agg_month.csv'      [Dataset aggregated to the settlement level]                                      #
@@ -42,24 +42,26 @@
 #                                                                                                                                                               #
 #_______INSTRUCTIONS:                                                                                                                                           #
 #                                                                                                                                                               #
-#               ° Check that you have the right version of the package 'srvyr' installed, see under LOAD PACKAGES                                               #
+#               + Make sure cleaned entries are not blanks, instead the values should be: 'cleaned'               
+#
+#               + Check whether you got the right version of the package 'srvyr' installed, see under LOAD PACKAGES                                             #
 #                                                                                                                                                               #               
-#               ° Change working directory (setwd) and add file names for clean data Baidoa and Mogadishu under header IMPORTS                                  #  
+#               + Change working directory (setwd) and add file names for clean data Baidoa and Mogadishu under header IMPORTS                                  #  
 #                   [both need to be saved as csv-file in the inputs folder]                                                                                    #
 #                                                                                                                                                               #                 
-#               ° If the survey tool changes (names of variables, or new variables), one will have to double-check:                                             #        
+#               + If the survey tool changes (names of variables, or new variables), one will have to double-check:                                             #        
 #                  -> In case those variables are without skip-logic, put in 'no_skip_list'                                                                     #
 #                  -> In case those variables need to be excluded from aggregation, put in 'not_needed_columns' list                                            #
 #                  -> Check if NC and SL dependency csv-files in "inputs/dependencies_SL_NC" are defined accordingly to the methodology                         #
 #                       [The lists contains main and dependent questions:                                                                                       #
 #                         Whenever the main question results in SL/NC during aggregation, the dependent questions become SL/NC.]                                #
 #                                                                                                                                                               #
-#               ° If more variables for FS outputs are needed: Add on in list "FS_vars" in the end of the script                                                #
+#               + If more variables for FS outputs are needed: Add on in list "FS_vars" in the end of the script                                                #
 #                                                                                                                                                               #
-#               ° Output-naming assumes aggregation of clean data from one month before                                                                         #
+#               + Output-naming assumes aggregation of clean data from one month before                                                                         #
 #                  -> Change values "agg_date" and "agg_month" accordingly, i.e. change -1 to -2 if two months ago or -0 if same month etc.                     #
 #                                                                                                                                                               #
-#               ° In case target regions change, update files in 'inputs/gis_data' with help from GIS-Officer accordingly                                       #            
+#               + In case target regions change, update files in 'inputs/gis_data' with help from GIS-Officer accordingly                                       #            
 #_______________________________________________________________________________________________________________________________________________________________#
 #_______________________________________________________________________________________________________________________________________________________________#
 
@@ -147,6 +149,9 @@ AoK <- function(x) {
 }
 
 ########IMPORTS#####################################################################################################################################################################################
+
+#set working directory
+setwd("C:/Users/Vanessa Causemann/Desktop/REACH/RStuff/Github/h2rAggregationSOM20")
 
 #import data set with blanks being NA's
 df_baidoa<-read.csv("inputs/SOM1901_H2R_Baidoa_Clean Data_November.csv", stringsAsFactors = FALSE, dec=".", sep=",", na.strings=c("NA",""," "))              
